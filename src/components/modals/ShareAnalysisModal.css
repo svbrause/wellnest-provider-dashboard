@@ -1,0 +1,67 @@
+/* Share Analysis Modal Styles */
+
+.share-analysis-modal-overlay {
+  z-index: 10000;
+}
+
+/* Close button: closer to top-right, square (1:1) */
+.share-analysis-modal-content .modal-header {
+  padding-top: 12px;
+  padding-right: 12px;
+  padding-bottom: 20px;
+  padding-left: 24px;
+  align-items: flex-start;
+}
+
+.share-analysis-modal-content .modal-close {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* Make subtitle appear below title instead of beside it */
+.share-analysis-modal-content .modal-header-info {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.share-analysis-modal-content .modal-subtitle {
+  margin-top: 0;
+}
+
+/* Checkbox and text inline, no flex/columns — just a small gap between them */
+.share-analysis-modal-content .form-group.share-analysis-checkbox-row {
+  display: block;
+}
+
+.share-analysis-modal-content .form-group.share-analysis-checkbox-row label.share-analysis-checkbox-label {
+  display: block !important;
+  font-size: 14px;
+  color: var(--theme-text-primary, #333);
+  cursor: default;
+  user-select: none;
+  margin-bottom: 0;
+}
+
+/* Override .form-group input { width: 100% } so checkbox stays narrow and left of text */
+.share-analysis-modal-content .form-group.share-analysis-checkbox-row input.share-analysis-include-link-checkbox {
+  width: 18px !important;
+  min-width: 18px;
+  max-width: 18px;
+  display: inline-block;
+  margin: 0 8px 0 0;
+  vertical-align: middle;
+  accent-color: var(--theme-accent, #6366f1);
+  cursor: default;
+  box-sizing: border-box;
+}
+
+.share-analysis-checkbox-text {
+  display: inline-block;
+  vertical-align: middle;
+}

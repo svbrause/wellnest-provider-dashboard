@@ -1,0 +1,682 @@
+/* ── Treatment Chapter Card ── */
+
+.tc {
+  scroll-margin-top: 24px;
+  position: relative;
+  background: #ffffff;
+  border-radius: 20px;
+  margin: 0 12px 24px;
+  /* Extra top padding so the “1 of 5” badge clears the chapter title */
+  padding: 38px 20px 22px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+}
+
+/* Chapter number badge */
+.tc-badge {
+  position: absolute;
+  top: -12px;
+  left: 20px;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  background: #3a3c3e;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.tc-badge-num {
+  font-size: 1rem;
+}
+
+/* Header */
+.tc-head {
+  margin-bottom: 16px;
+}
+
+.tc-name {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #3a3c3e;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.tc-area {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: #5a9e94;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tc-label {
+  margin: 0 0 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+/* Chapter overview — treatment context, plan lines, analysis tie-in */
+.tc-overview {
+  margin: 0 0 20px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.tc-overview-plan {
+  margin: 0 0 12px;
+  padding-left: 18px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #1e293b;
+}
+
+.tc-overview-plan li {
+  margin-bottom: 4px;
+}
+
+.tc-overview-plan li:last-child {
+  margin-bottom: 0;
+}
+
+.tc-overview-analysis {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #475569;
+}
+
+/* Quick Facts */
+.tc-facts {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 22px;
+}
+
+.tc-fact {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 10px;
+  background: #f1f5f9;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.tc-fact-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+}
+
+.tc-fact-val {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #3a3c3e;
+}
+
+.tc-fact-note {
+  margin: -14px 0 22px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+/* Section labels */
+.tc-section-label {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #3a3c3e;
+  letter-spacing: -0.01em;
+}
+
+/* External / curated articles section (Wellnest) */
+.tc-external-section {
+  margin: 0 0 18px;
+}
+
+.tc-external-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--theme-border, #e2e8f0);
+  padding-top: 12px;
+}
+
+.tc-external-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  align-items: start;
+  margin: 0 0 12px;
+}
+
+.tc-external-item:last-child {
+  margin-bottom: 0;
+}
+
+.tc-external-kind {
+  grid-row: 1;
+  grid-column: 1;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  white-space: nowrap;
+  padding-top: 2px;
+}
+
+.tc-external-link {
+  grid-row: 1;
+  grid-column: 2;
+  color: #0d9488;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-word;
+}
+
+.tc-external-link:hover {
+  color: #0f766e;
+}
+
+.tc-external-note {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  font-size: 0.74rem;
+  color: #64748b;
+  line-height: 1.45;
+  margin-top: 2px;
+}
+
+.tc-external-disclaimer {
+  margin: 0 0 12px;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: #64748b;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.tc-external-disclaimer--compact {
+  margin: 0 0 12px;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* Videos — compact thumbnails + expand */
+.tc-video-section {
+  margin: 0 0 22px;
+}
+
+.tc-video-hint {
+  margin: 0 0 12px;
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+.tc-video-sub {
+  margin: 0 0 10px;
+  font-size: 0.88rem;
+  color: #64748b;
+}
+
+.tc-video-thumbs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  /* Bleed to card edges (same idea as photo carousel) so thumbs are wider */
+  width: calc(100% + 40px);
+  margin-left: -20px;
+  margin-right: -20px;
+  margin-bottom: 12px;
+  padding-left: 20px;
+  padding-right: 20px;
+  box-sizing: border-box;
+}
+
+.tc-video-thumb {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  border-radius: 12px;
+  outline: none;
+}
+
+.tc-video-thumb:focus-visible {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #9dd6cb;
+}
+
+.tc-video-thumb-frame {
+  position: relative; /* required so video + play overlay fill this box */
+  display: block;
+  width: 100%;
+  min-height: 96px;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #e8eeed 0%, #dfe6e5 100%);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.12);
+  border: 2px solid transparent;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tc-video-thumb--active .tc-video-thumb-frame {
+  border-color: #9dd6cb;
+  box-shadow: 0 4px 16px rgba(157, 214, 203, 0.45);
+}
+
+.tc-video-thumb-wellnest {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  pointer-events: none;
+}
+
+/* Static JPG thumbnails (preferred) — instant paint, no video decode */
+.tc-video-thumb-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  background: #3a3c3e;
+}
+
+.tc-video-thumb-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  background: #3a3c3e;
+}
+
+.tc-video-thumb-vimeo-placeholder {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #1e3a4c 0%, #0f766e 55%, #134e4a 100%);
+  pointer-events: none;
+}
+
+.tc-video-thumb-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5; /* keep play affordance above image/thumbnail layers */
+  font-size: 0.92rem;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(to top, rgba(15, 23, 42, 0.58), rgba(15, 23, 42, 0.2) 45%, rgba(15, 23, 42, 0.06) 75%, transparent 100%);
+  pointer-events: none;
+}
+
+.tc-video-thumb-play-icon {
+  position: relative;
+  z-index: 6;
+  margin-left: 3px; /* optical center for ▶ */
+  font-size: 1.08em;
+  font-weight: 900;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+.tc-video-thumb-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #475569;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Fullscreen-style popup (portaled to body) */
+.tc-video-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-sizing: border-box;
+}
+
+.tc-video-modal {
+  position: relative;
+  width: 100%;
+  max-width: min(96vw, 900px);
+  max-height: min(96vh, 960px);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 20px 18px 20px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+  box-sizing: border-box;
+}
+
+.tc-video-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-family: inherit;
+  padding: 0;
+}
+
+.tc-video-modal-close:active {
+  transform: scale(0.96);
+}
+
+.tc-video-modal-title {
+  margin: 0 44px 8px 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #3a3c3e;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.tc-video-modal-sub {
+  margin: 0 0 14px;
+  font-size: 0.88rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.tc-video-modal-frame {
+  border-radius: 14px;
+  overflow: hidden;
+  background: #000;
+}
+
+.tc-video-modal-player {
+  display: block;
+  width: 100%;
+  max-height: min(84vh, 820px);
+  object-fit: contain;
+  background: #000;
+  vertical-align: middle;
+}
+
+.tc-video-modal-player--vimeo {
+  max-height: none;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  min-height: min(58vw, 440px);
+  border: 0;
+}
+
+/* Swipeable Photo Carousel */
+.tc-cases-section {
+  margin: 0 0 18px;
+}
+
+.tc-cases-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.tc-swipe-hint {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tc-muted {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #94a3b8;
+  line-height: 1.55;
+}
+
+.tc-carousel {
+  display: flex;
+  align-items: flex-start; /* don't stretch all cards to tallest slide — fixes gap above View details */
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  gap: 14px;
+  padding-bottom: 10px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  margin: 0 -20px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.tc-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.tc-carousel-card {
+  scroll-snap-align: start;
+  flex: 0 0 78%;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.tc-carousel-img-wrap {
+  background: #eceeed;
+}
+
+.tc-carousel-img {
+  width: 100%;
+  display: block;
+  /* Landscape frame — shorter than square; cover keeps subject centered */
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.tc-carousel-caption {
+  padding: 12px 14px;
+  flex: 0 0 auto; /* was flex:1 — grew to match tallest card and left huge gap above the button */
+}
+
+.tc-carousel-story {
+  margin: 0 0 4px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #3a3c3e;
+  line-height: 1.3;
+}
+
+.tc-carousel-body {
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: #64748b;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  overflow: hidden;
+}
+
+.tc-carousel-tags {
+  margin: 0 0 4px;
+  font-size: 0.72rem;
+  color: #5a9e94;
+  font-weight: 600;
+}
+
+.tc-carousel-demo {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+.tc-carousel-detail-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-top: 1px solid #f1f5f9;
+  background: transparent;
+  color: #5a9e94;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+
+.tc-carousel-detail-btn:active {
+  background: #f8fafc;
+}
+
+/* Glossary (shared pvb-plan-glossary classes from PostVisitBlueprintPage.css) */
+.tc-chapter-glossary {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(150, 152, 154, 0.22);
+}
+
+/* Highlights (regions, products, findings — shown under title, before overview) */
+.tc-highlights {
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.tc-highlights--top {
+  padding-top: 0;
+  margin: 0 0 18px;
+  padding-bottom: 14px;
+  border-top: none;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Skincare — product photos only (short names in alt / title / aria) */
+.tc-skincare-products {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(150, 152, 154, 0.25);
+}
+
+.tc-skincare-products .tc-section-label {
+  margin-bottom: 14px;
+}
+
+.tc-skincare-products__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 10px;
+}
+
+.tc-skincare-products__cell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.tc-skincare-products__cell--link:focus-visible {
+  outline: 2px solid #9dd6cb;
+  outline-offset: 3px;
+  border-radius: 12px;
+}
+
+.tc-skincare-products__thumb-wrap {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid rgba(150, 152, 154, 0.35);
+  box-shadow: 0 2px 10px rgba(58, 60, 62, 0.06);
+}
+
+.tc-skincare-products__thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tc-skincare-products__thumb--placeholder {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, rgba(157, 214, 203, 0.2) 0%, #ffffff 100%);
+}
+
+.tc-skincare-products__ph-icon {
+  font-size: 1.25rem;
+  color: #9dd6cb;
+  line-height: 1;
+}
+
+.tc-skincare-products__caption {
+  margin-top: 8px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #475569;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
