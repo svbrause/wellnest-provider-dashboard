@@ -13,7 +13,8 @@
     "test:e2e:ui": "playwright test --ui",
     "healthcheck": "node scripts/healthcheck.js",
     "extract:blueprint-posters": "node scripts/extract-blueprint-posters.mjs",
-    "seed:wellnest-demo-patients": "node scripts/seed-wellnest-demo-patients.mjs"
+    "seed:wellnest-demo-patients": "node scripts/seed-wellnest-demo-patients.mjs",
+    "compare:wellnest-demo-airtable": "node scripts/compare-wellnest-demo-airtable.mjs"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.21",

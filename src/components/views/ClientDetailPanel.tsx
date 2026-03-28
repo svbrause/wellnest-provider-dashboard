@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Client, DiscussedItem } from "../../types";
-import { formatDate, formatRelativeDate } from "../../utils/dateFormatting";
+import {
+  formatDate,
+  formatDateOfBirth,
+  formatRelativeDate,
+} from "../../utils/dateFormatting";
 import {
   formatFacialStatusForDisplay,
   getFacialStatusColorForDisplay,
@@ -68,6 +72,7 @@ import {
 import { persistClientDiscussedItems } from "../../utils/wellnestDemoPlanPersistence";
 import { getSkinQuizMessage } from "../../utils/skinQuizLink";
 import {
+  mergeWellnessIntakeFromField,
   parseInterestedIssuesList,
   partitionInterestedIssuesForFacialVsWellness,
 } from "../../utils/partitionInterestedIssuesWellnessFacial";
@@ -114,10 +119,17 @@ export default function ClientDetailPanel({
     if (!client) {
       return { facialInterests: [] as string[], wellnessInterests: [] as string[] };
     }
-    return partitionInterestedIssuesForFacialVsWellness(
+    const part = partitionInterestedIssuesForFacialVsWellness(
       parseInterestedIssuesList(client),
     );
-  }, [client?.id, client?.interestedIssues]);
+    return {
+      facialInterests: part.facialInterests,
+      wellnessInterests: mergeWellnessIntakeFromField(
+        part.wellnessInterests,
+        client.wellnessGoals,
+      ),
+    };
+  }, [client?.id, client?.interestedIssues, client?.wellnessGoals]);
   const intakeWellnessInterests = intakeIssuePartition.wellnessInterests;
   const intakeFacialInterests = intakeIssuePartition.facialInterests;
 
@@ -868,7 +880,7 @@ export default function ClientDetailPanel({
                           <div className="detail-item">
                             <label>Date of Birth</label>
                             <div className="detail-value">
-                              {formatDate(client.dateOfBirth)}
+                              {formatDateOfBirth(client.dateOfBirth)}
                             </div>
                           </div>
                         )}

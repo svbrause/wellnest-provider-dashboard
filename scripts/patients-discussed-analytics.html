@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Patients — discussed treatments analytics</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0c0e12;
+      --surface: #141820;
+      --elevated: #1c2430;
+      --border: #2a3444;
+      --text: #e6e9ef;
+      --muted: #8b939e;
+      --accent: #5b8fc7;
+      --accent2: #7eb87e;
+      --warn: #d4a84b;
+      --chart-font: 11px system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1.25rem 1.5rem 3rem;
+    }
+    header {
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+    }
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.35rem;
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 0.9rem;
+      max-width: 52rem;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-top: 1rem;
+    }
+    .toolbar input[type="file"] { color: var(--muted); font-size: 0.85rem; max-width: 100%; }
+    button, .btn {
+      background: var(--elevated);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.45rem 0.9rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    button.primary, .btn.primary {
+      background: var(--accent);
+      border-color: #4a7ab0;
+      color: #0a0c10;
+    }
+    button:hover, .btn:hover { filter: brightness(1.08); }
+    .hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+      width: 100%;
+    }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .kpi {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+    }
+    .kpi .val { font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .kpi .lab { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    nav.tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-bottom: 1rem;
+    }
+    nav.tabs button {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    nav.tabs button.active {
+      background: var(--elevated);
+      color: var(--text);
+      border-color: var(--accent);
+    }
+    .panel {
+      display: none;
+      animation: fade 0.2s ease;
+    }
+    .panel.active { display: block; }
+    @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+    .grid2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+    }
+    .card h2 {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 0 0 0.75rem;
+    }
+    .chart-box {
+      position: relative;
+      height: 280px;
+    }
+    .chart-box.tall { height: 360px; }
+    .chart-box.short { height: 220px; }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: flex-end;
+      margin-bottom: 1rem;
+    }
+    .filters label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    select, input[type="search"] {
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.4rem 0.55rem;
+      border-radius: 6px;
+      min-width: 10rem;
+      font-size: 0.85rem;
+    }
+    table.data {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+    table.data th, table.data td {
+      text-align: left;
+      padding: 0.4rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    table.data th {
+      color: var(--muted);
+      font-weight: 500;
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+    }
+    table.data .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .scroll {
+      max-height: 420px;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .err {
+      background: #3a2020;
+      border: 1px solid #6b3030;
+      color: #f0b0b0;
+      padding: 0.65rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-top: 0.75rem;
+    }
+    .hidden { display: none !important; }
+    .heat-wrap { overflow: auto; max-width: 100%; }
+    table.heat td, table.heat th {
+      padding: 0.35rem 0.45rem;
+      font-size: 0.72rem;
+      white-space: nowrap;
+      border: 1px solid var(--border);
+    }
+    table.heat th { background: var(--elevated); }
+    table.heat .cell { text-align: center; font-variant-numeric: tabular-nums; }
+    .mono { font-family: ui-monospace, monospace; font-size: 0.78rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Discussed treatments — analytics</h1>
+      <p class="sub">
+        Explore patient exports (CSV with JSON in <span class="mono">Treatments Discussed</span>).
+        Charts cover service staff, treatments, timelines, products, and regions. Everything runs locally in your browser; no data is uploaded.
+      </p>
+      <div class="toolbar">
+        <input type="file" id="file" accept=".csv,text/csv" />
+        <button type="button" class="primary" id="btnSample">Load project CSV</button>
+        <button type="button" id="btnClear">Clear</button>
+        <span class="hint">
+          <strong>Load project CSV</strong> works when this file is opened over HTTP (e.g. repo root:
+          <span class="mono">npx serve .</span> then open <span class="mono">/scripts/patients-discussed-analytics.html</span>).
+          Otherwise use the file picker.
+        </span>
+      </div>
+      <div id="loadErr" class="err hidden"></div>
+    </header>
+
+    <div id="app" class="hidden">
+      <div class="kpis" id="kpis"></div>
+
+      <nav class="tabs" id="tabs"></nav>
+
+      <div class="panel active" data-panel="overview">
+        <div class="grid2">
+          <div class="card">
+            <h2>Line items by timeline</h2>
+            <div class="chart-box short"><canvas id="cTimeline"></canvas></div>
+          </div>
+          <div class="card">
+            <h2>Top treatments (line items)</h2>
+            <div class="chart-box"><canvas id="cTreatment"></canvas></div>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <h2>Providers (patient rows)</h2>
+            <div class="chart-box short"><canvas id="cProviders"></canvas></div>
+          </div>
+          <div class="card">
+            <h2>Line items per patient</h2>
+            <div class="chart-box short"><canvas id="cItemsPerPatient"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" data-panel="staff">
+        <div class="grid2">
+          <div class="card">
+            <h2>Patients per service staff</h2>
+            <p class="sub" style="font-size:0.8rem;margin:-0.25rem 0 0.5rem">Unique patients with that staff on the row (comma-separated names in export are merged).</p>
+            <div class="chart-box tall"><canvas id="cStaffPatients"></canvas></div>
+          </div>
+          <div class="card">
+            <h2>Line items attributed to staff</h2>
+            <p class="sub" style="font-size:0.8rem;margin:-0.25rem 0 0.5rem">Each discussed line is counted once per staff listed on that patient row.</p>
+            <div class="chart-box tall"><canvas id="cStaffLines"></canvas></div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:1rem">
+          <h2>Staff × treatment (line items)</h2>
+          <div class="heat-wrap scroll" id="heatStaffTreatment"></div>
+        </div>
+      </div>
+
+      <div class="panel" data-panel="timelines">
+        <div class="card" style="margin-bottom:1rem">
+          <h2>Treatment × timeline (stacked)</h2>
+          <div class="chart-box tall"><canvas id="cStacked"></canvas></div>
+        </div>
+        <div class="card">
+          <h2>Timeline detail table</h2>
+          <div class="scroll" id="tableTimeline"></div>
+        </div>
+      </div>
+
+      <div class="panel" data-panel="products">
+        <div class="filters">
+          <label>Filter by treatment
+            <select id="selTreatmentForProduct"></select>
+          </label>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <h2>Top products (line items)</h2>
+            <div class="chart-box tall"><canvas id="cProducts"></canvas></div>
+          </div>
+          <div class="card">
+            <h2>Top region tokens</h2>
+            <p class="sub" style="font-size:0.8rem;margin:-0.25rem 0 0.5rem">Regions split on commas (e.g. Forehead, Glabella → two tokens).</p>
+            <div class="chart-box tall"><canvas id="cRegions"></canvas></div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Products for selected treatment</h2>
+          <div class="scroll" id="tableProductsByTreatment"></div>
+        </div>
+      </div>
+
+      <div class="panel" data-panel="explorer">
+        <div class="filters">
+          <label>Search
+            <input type="search" id="explorerSearch" placeholder="Patient, treatment, product…" style="min-width:16rem" />
+          </label>
+          <label>Timeline
+            <select id="explorerTimeline"><option value="">All</option></select>
+          </label>
+          <label>Treatment
+            <select id="explorerTreatment"><option value="">All</option></select>
+          </label>
+        </div>
+        <div class="scroll" id="explorerTable"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STAFF_FIRST_HINT = "Appointment Service Staff First";
+    const STAFF_LAST_HINT = "Appointment Service Staff Last";
+    const TREATMENTS_COL = "Treatments Discussed";
+
+    const TIMELINE_ORDER = ["Now", "Add next visit", "Wishlist", "Skincare", "Completed", "(empty)", "Other"];
+
+    const charts = {};
+
+    function norm(s) {
+      if (s == null) return "";
+      return String(s).replace(/\s+/g, " ").trim();
+    }
+
+    function parseStaff(firstCell, lastCell) {
+      const f = norm(firstCell);
+      const l = norm(lastCell);
+      if (!f || /^not applicable$/i.test(f)) return ["(unknown staff)"];
+      const fs = f.split(",").map((x) => x.trim()).filter(Boolean);
+      const ls = l.split(",").map((x) => x.trim()).filter(Boolean);
+      const n = Math.max(fs.length, ls.length, 1);
+      const out = new Set();
+      for (let i = 0; i < n; i++) {
+        const fn = fs[Math.min(i, Math.max(fs.length - 1, 0))] || "";
+        const ln = ls[Math.min(i, Math.max(ls.length - 1, 0))] || "";
+        const name = `${fn} ${ln}`.trim();
+        out.add(name || "(unknown staff)");
+      }
+      return [...out];
+    }
+
+    function parseTreatmentsJson(cell) {
+      if (!cell) return [];
+      let j = String(cell).replace(/""/g, '"');
+      if (j.startsWith('"') && j.endsWith('"')) j = j.slice(1, -1);
+      try {
+        const v = JSON.parse(j);
+        return Array.isArray(v) ? v : [v];
+      } catch {
+        return [];
+      }
+    }
+
+    function timelineKey(raw) {
+      const t = norm(raw);
+      if (!t) return "(empty)";
+      if (TIMELINE_ORDER.includes(t)) return t;
+      return "Other";
+    }
+
+    function treatmentLabel(o) {
+      return norm(o.treatment) || norm(o.interest) || "(no treatment)";
+    }
+
+    function productLabel(o) {
+      const p = norm(o.product);
+      return p || "—";
+    }
+
+    function regionTokens(o) {
+      const r = norm(o.region);
+      if (!r) return [];
+      return r.split(",").map((x) => x.trim()).filter(Boolean);
+    }
+
+    function pickCol(row, needle) {
+      const k = Object.keys(row).find((key) => key.includes(needle));
+      return k ? row[k] : "";
+    }
+
+    function destroyChart(id) {
+      if (charts[id]) {
+        charts[id].destroy();
+        delete charts[id];
+      }
+    }
+
+    function countMap() {
+      return new Map();
+    }
+    function bump(m, k, n = 1) {
+      m.set(k, (m.get(k) || 0) + n);
+    }
+
+    function sortedEntries(m, desc = true) {
+      return [...m.entries()].sort((a, b) => (desc ? b[1] - a[1] : a[1] - b[1]));
+    }
+
+    function truncate(s, n) {
+      s = String(s);
+      return s.length <= n ? s : s.slice(0, n - 1) + "…";
+    }
+
+    const palette = [
+      "#5b8fc7", "#7eb87e", "#d4a84b", "#c97b9e", "#7ec4c4", "#b08fd4",
+      "#d4896b", "#8db85c", "#6b9bd4", "#c9c25e", "#d46b7e", "#5cc4a4",
+    ];
+
+    function buildLineItems(rows) {
+      const items = [];
+      for (const row of rows) {
+        const patient = norm(row.Name);
+        const providers = norm(row.Providers);
+        const staff = parseStaff(pickCol(row, STAFF_FIRST_HINT), pickCol(row, STAFF_LAST_HINT));
+        const objs = parseTreatmentsJson(row[TREATMENTS_COL] ?? pickCol(row, "Treatments Discussed"));
+        for (const o of objs) {
+          if (!o || typeof o !== "object") continue;
+          const treatment = treatmentLabel(o);
+          const timeline = timelineKey(o.timeline);
+          const product = productLabel(o);
+          const regions = regionTokens(o);
+          const addedAt = norm(o.addedAt);
+          items.push({
+            patient,
+            providers,
+            staff,
+            treatment,
+            timeline,
+            product,
+            regions,
+            regionRaw: norm(o.region),
+            interest: norm(o.interest),
+            addedAt,
+            raw: o,
+          });
+        }
+      }
+      return items;
+    }
+
+    function aggregate(items) {
+      const patientSet = new Set(items.map((i) => i.patient).filter(Boolean));
+      const providers = countMap();
+      const timeline = countMap();
+      const treatment = countMap();
+      const staffPatients = new Map();
+      const staffLines = countMap();
+      const staffTreatment = new Map();
+      const treatmentTimeline = new Map();
+      const productAll = countMap();
+      const productByTreatment = new Map();
+      const regionToken = countMap();
+      const regionByTreatment = new Map();
+      const itemsPerPatient = countMap();
+
+      const byPatient = new Map();
+      for (const it of items) {
+        if (!byPatient.has(it.patient)) {
+          byPatient.set(it.patient, { staff: it.staff, providers: it.providers, n: 0 });
+        }
+        byPatient.get(it.patient).n++;
+      }
+      for (const [pat, v] of byPatient) {
+        bump(itemsPerPatient, String(v.n), 1);
+        bump(providers, v.providers || "(empty)", 1);
+        for (const s of v.staff) {
+          if (!staffPatients.has(s)) staffPatients.set(s, new Set());
+          if (pat) staffPatients.get(s).add(pat);
+        }
+      }
+
+      for (const it of items) {
+        bump(timeline, it.timeline, 1);
+        bump(treatment, it.treatment, 1);
+        bump(productAll, it.product, 1);
+
+        const ttKey = it.treatment;
+        if (!treatmentTimeline.has(ttKey)) treatmentTimeline.set(ttKey, countMap());
+        bump(treatmentTimeline.get(ttKey), it.timeline, 1);
+
+        if (!productByTreatment.has(ttKey)) productByTreatment.set(ttKey, countMap());
+        bump(productByTreatment.get(ttKey), it.product, 1);
+
+        if (!regionByTreatment.has(ttKey)) regionByTreatment.set(ttKey, countMap());
+        for (const tok of it.regions.length ? it.regions : []) {
+          bump(regionToken, tok, 1);
+          bump(regionByTreatment.get(ttKey), tok, 1);
+        }
+
+        for (const s of it.staff) {
+          bump(staffLines, s, 1);
+          const stKey = `${s}\t${it.treatment}`;
+          bump(staffTreatment, stKey, 1);
+        }
+      }
+
+      return {
+        patientCount: patientSet.size,
+        lineCount: items.length,
+        providers,
+        timeline,
+        treatment,
+        staffPatients,
+        staffLines,
+        staffTreatment,
+        treatmentTimeline,
+        productAll,
+        productByTreatment,
+        regionToken,
+        regionByTreatment,
+        itemsPerPatient,
+        byPatient,
+      };
+    }
+
+    function renderKpis(agg, items) {
+      const dates = items.map((i) => i.addedAt).filter(Boolean).sort();
+      const el = document.getElementById("kpis");
+      el.innerHTML = [
+        kpi("Patients", agg.patientCount),
+        kpi("Line items", agg.lineCount),
+        kpi("Avg items / patient", agg.patientCount ? (agg.lineCount / agg.patientCount).toFixed(1) : "—"),
+        kpi("Date range", dates.length ? `${dates[0].slice(0, 10)} → ${dates[dates.length - 1].slice(0, 10)}` : "—"),
+      ].join("");
+    }
+
+    function kpi(lab, val) {
+      return `<div class="kpi"><div class="val">${escapeHtml(String(val))}</div><div class="lab">${escapeHtml(lab)}</div></div>`;
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function barChart(canvasId, labels, data, opts = {}) {
+      destroyChart(canvasId);
+      const ctx = document.getElementById(canvasId).getContext("2d");
+      const horizontal = opts.horizontal;
+      charts[canvasId] = new Chart(ctx, {
+        type: horizontal ? "bar" : "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              data,
+              backgroundColor: labels.map((_, i) => palette[i % palette.length]),
+              borderWidth: 0,
+            },
+          ],
+        },
+        options: {
+          indexAxis: horizontal ? "y" : "x",
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: (items) => {
+                  const i = items[0].dataIndex;
+                  return opts.fullLabels ? opts.fullLabels[i] : labels[i];
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              ticks: { color: "#8b939e", font: { size: 10 } },
+              grid: { color: "#2a3444" },
+              border: { color: "#2a3444" },
+            },
+            y: {
+              ticks: { color: "#8b939e", font: { size: 10 } },
+              grid: { color: "#2a3444" },
+              border: { color: "#2a3444" },
+            },
+          },
+        },
+      });
+    }
+
+    function stackedTreatmentTimeline(agg) {
+      destroyChart("cStacked");
+      const treatments = sortedEntries(agg.treatment, true).slice(0, 14).map(([k]) => k);
+      const timelines = [...TIMELINE_ORDER.filter((t) => t !== "Other"), "Other"];
+      const colors = {
+        Now: "#6b8cce",
+        "Add next visit": "#6ab88a",
+        Wishlist: "#d4a84b",
+        Skincare: "#c97b9e",
+        Completed: "#6a6a6a",
+        "(empty)": "#4a4a4a",
+        Other: "#8b7ec9",
+      };
+      const datasets = timelines.map((tl) => ({
+        label: tl,
+        data: treatments.map((tr) => agg.treatmentTimeline.get(tr)?.get(tl) || 0),
+        backgroundColor: colors[tl] || "#666",
+        stack: "s",
+      }));
+
+      const ctx = document.getElementById("cStacked").getContext("2d");
+      charts.cStacked = new Chart(ctx, {
+        type: "bar",
+        data: { labels: treatments.map((t) => truncate(t, 28)), datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "bottom", labels: { color: "#8b939e", boxWidth: 12, font: { size: 10 } } },
+          },
+          scales: {
+            x: { stacked: true, ticks: { color: "#8b939e", maxRotation: 45, minRotation: 0, font: { size: 9 } }, grid: { display: false } },
+            y: { stacked: true, beginAtZero: true, ticks: { color: "#8b939e", font: { size: 10 } }, grid: { color: "#2a3444" } },
+          },
+        },
+      });
+    }
+
+    function renderOverview(agg) {
+      const tl = sortedEntries(agg.timeline, true);
+      barChart(
+        "cTimeline",
+        tl.map(([k]) => k),
+        tl.map(([, v]) => v),
+        { horizontal: false }
+      );
+
+      const tr = sortedEntries(agg.treatment, true).slice(0, 16);
+      const full = tr.map(([k]) => k);
+      barChart(
+        "cTreatment",
+        full.map((k) => truncate(k, 36)),
+        tr.map(([, v]) => v),
+        { horizontal: true, fullLabels: full }
+      );
+
+      const pr = sortedEntries(agg.providers, true).slice(0, 12);
+      barChart(
+        "cProviders",
+        pr.map(([k]) => truncate(k, 24)),
+        pr.map(([, v]) => v),
+        { horizontal: true, fullLabels: pr.map(([k]) => k) }
+      );
+
+      const ipp = sortedEntries(agg.itemsPerPatient, false);
+      barChart(
+        "cItemsPerPatient",
+        ipp.map(([k]) => `${k} items`),
+        ipp.map(([, v]) => v),
+        { horizontal: false }
+      );
+    }
+
+    function renderStaff(agg) {
+      const sp = sortedEntries(
+        new Map([...agg.staffPatients.entries()].map(([k, set]) => [k, set.size])),
+        true
+      );
+      const topSp = sp.slice(0, 20);
+      barChart(
+        "cStaffPatients",
+        topSp.map(([k]) => truncate(k, 22)),
+        topSp.map(([, v]) => v),
+        { horizontal: true, fullLabels: topSp.map(([k]) => k) }
+      );
+
+      const sl = sortedEntries(agg.staffLines, true).slice(0, 20);
+      barChart(
+        "cStaffLines",
+        sl.map(([k]) => truncate(k, 22)),
+        sl.map(([, v]) => v),
+        { horizontal: true, fullLabels: sl.map(([k]) => k) }
+      );
+
+      const staffList = sortedEntries(
+        new Map([...agg.staffPatients.entries()].map(([k, set]) => [k, set.size])),
+        true
+      )
+        .slice(0, 12)
+        .map(([k]) => k);
+      const treatList = sortedEntries(agg.treatment, true).slice(0, 16).map(([k]) => k);
+      const matrix = new Map();
+      for (const k of staffList) {
+        for (const t of treatList) matrix.set(`${k}\t${t}`, 0);
+      }
+      for (const [key, n] of agg.staffTreatment) {
+        if (matrix.has(key)) matrix.set(key, n);
+      }
+
+      let html = "<table class='heat'><thead><tr><th>Staff</th>";
+      for (const t of treatList) html += `<th title="${escapeHtml(t)}">${escapeHtml(truncate(t, 14))}</th>`;
+      html += "</tr></thead><tbody>";
+      for (const s of staffList) {
+        html += `<tr><th>${escapeHtml(truncate(s, 20))}</th>`;
+        for (const t of treatList) {
+          const v = matrix.get(`${s}\t${t}`) || 0;
+          const opacity = v === 0 ? 0.15 : Math.min(0.25 + v * 0.12, 1);
+          html += `<td class="cell" style="background:rgba(91,143,199,${opacity})">${v || ""}</td>`;
+        }
+        html += "</tr>";
+      }
+      html += "</tbody></table>";
+      document.getElementById("heatStaffTreatment").innerHTML = html;
+    }
+
+    function renderTimelineTable(agg) {
+      const treatments = sortedEntries(agg.treatment, true);
+      let h =
+        "<table class='data'><thead><tr><th>Treatment</th><th class='num'>Now</th><th class='num'>Next</th><th class='num'>Wishlist</th><th class='num'>Skincare</th><th class='num'>Other</th><th class='num'>Total</th></tr></thead><tbody>";
+      for (const [tr,] of treatments) {
+        const m = agg.treatmentTimeline.get(tr);
+        const n0 = m?.get("Now") || 0;
+        const nn = m?.get("Add next visit") || 0;
+        const nw = m?.get("Wishlist") || 0;
+        const ns = m?.get("Skincare") || 0;
+        let other = 0;
+        let tot = 0;
+        for (const [tk, tv] of m || []) {
+          tot += tv;
+          if (!["Now", "Add next visit", "Wishlist", "Skincare"].includes(tk)) other += tv;
+        }
+        h += `<tr><td>${escapeHtml(tr)}</td><td class="num">${n0}</td><td class="num">${nn}</td><td class="num">${nw}</td><td class="num">${ns}</td><td class="num">${other}</td><td class="num">${tot}</td></tr>`;
+      }
+      h += "</tbody></table>";
+      document.getElementById("tableTimeline").innerHTML = h;
+    }
+
+    function fillSelect(sel, options, withEmpty = true) {
+      const cur = sel.value;
+      sel.innerHTML = withEmpty ? '<option value="">All</option>' : "";
+      for (const o of options) {
+        const opt = document.createElement("option");
+        opt.value = o;
+        opt.textContent = o;
+        sel.appendChild(opt);
+      }
+      if ([...sel.options].some((o) => o.value === cur)) sel.value = cur;
+    }
+
+    function renderProductsPanel(agg, items) {
+      const treatments = sortedEntries(agg.treatment, true).map(([k]) => k);
+      fillSelect(document.getElementById("selTreatmentForProduct"), treatments, true);
+      const sel = document.getElementById("selTreatmentForProduct");
+      const updateCharts = () => {
+        const t = sel.value;
+        let prodMap = agg.productAll;
+        let regMap = agg.regionToken;
+        if (t) {
+          prodMap = agg.productByTreatment.get(t) || countMap();
+          regMap = agg.regionByTreatment.get(t) || countMap();
+        }
+        const prods = sortedEntries(prodMap, true)
+          .filter(([k]) => k !== "—")
+          .slice(0, 18);
+        const fullP = prods.map(([k]) => k);
+        barChart(
+          "cProducts",
+          fullP.map((k) => truncate(k, 40)),
+          prods.map(([, v]) => v),
+          { horizontal: true, fullLabels: fullP }
+        );
+
+        const regs = sortedEntries(regMap, true).slice(0, 18);
+        const fullR = regs.map(([k]) => k);
+        barChart(
+          "cRegions",
+          fullR.map((k) => truncate(k, 28)),
+          regs.map(([, v]) => v),
+          { horizontal: true, fullLabels: fullR }
+        );
+
+        const m = t ? agg.productByTreatment.get(t) : null;
+        let tbl =
+          "<table class='data'><thead><tr><th>Product</th><th class='num'>Count</th></tr></thead><tbody>";
+        if (m) {
+          for (const [p, c] of sortedEntries(m, true)) {
+            tbl += `<tr><td>${escapeHtml(p)}</td><td class="num">${c}</td></tr>`;
+          }
+        } else {
+          tbl += "<tr><td colspan='2'>Select a treatment to see a breakdown.</td></tr>";
+        }
+        tbl += "</tbody></table>";
+        document.getElementById("tableProductsByTreatment").innerHTML = tbl;
+      };
+      sel.onchange = updateCharts;
+      updateCharts();
+    }
+
+    let allItems = [];
+
+    function renderExplorer(items) {
+      const timelines = [...new Set(items.map((i) => i.timeline))].sort((a, b) => {
+        const ia = TIMELINE_ORDER.indexOf(a);
+        const ib = TIMELINE_ORDER.indexOf(b);
+        const va = ia === -1 ? 999 : ia;
+        const vb = ib === -1 ? 999 : ib;
+        if (va !== vb) return va - vb;
+        return a.localeCompare(b);
+      });
+      const treats = sortedEntries(
+        items.reduce((m, i) => {
+          bump(m, i.treatment, 1);
+          return m;
+        }, countMap()),
+        true
+      ).map(([k]) => k);
+      fillSelect(document.getElementById("explorerTimeline"), timelines, true);
+      fillSelect(document.getElementById("explorerTreatment"), treats, true);
+
+      const redraw = () => {
+        const q = norm(document.getElementById("explorerSearch").value).toLowerCase();
+        const ft = document.getElementById("explorerTimeline").value;
+        const ftr = document.getElementById("explorerTreatment").value;
+        const cap = 400;
+        const filterOne = (i) => {
+          if (ft && i.timeline !== ft) return false;
+          if (ftr && i.treatment !== ftr) return false;
+          if (!q) return true;
+          const blob = [i.patient, i.treatment, i.product, i.regionRaw, i.interest, i.staff.join(" ")].join(" ").toLowerCase();
+          return blob.includes(q);
+        };
+        const allMatch = items.filter(filterOne);
+        const more = allMatch.length > cap;
+        const rows = allMatch.slice(0, cap);
+        let h =
+          "<table class='data'><thead><tr><th>Patient</th><th>Staff</th><th>Treatment</th><th>Product</th><th>Region</th><th>Timeline</th></tr></thead><tbody>";
+        for (const i of rows) {
+          h += `<tr><td>${escapeHtml(i.patient)}</td><td>${escapeHtml(i.staff.join(", "))}</td><td>${escapeHtml(i.treatment)}</td><td>${escapeHtml(truncate(i.product, 48))}</td><td>${escapeHtml(truncate(i.regionRaw, 36))}</td><td>${escapeHtml(i.timeline)}</td></tr>`;
+        }
+        h += "</tbody></table>";
+        if (more) {
+          h += `<p class="sub" style="margin:0.5rem 0 0">Showing first ${cap} of ${allMatch.length} matches — narrow search or filters.</p>`;
+        }
+        document.getElementById("explorerTable").innerHTML = h;
+      };
+
+      document.getElementById("explorerSearch").oninput = redraw;
+      document.getElementById("explorerTimeline").onchange = redraw;
+      document.getElementById("explorerTreatment").onchange = redraw;
+      redraw();
+    }
+
+    function initTabs() {
+      const panels = [...document.querySelectorAll(".panel")];
+      const names = [
+        { id: "overview", label: "Overview" },
+        { id: "staff", label: "Service staff" },
+        { id: "timelines", label: "Timelines" },
+        { id: "products", label: "Products & regions" },
+        { id: "explorer", label: "Line items" },
+      ];
+      const nav = document.getElementById("tabs");
+      nav.innerHTML = names
+        .map(
+          (n, i) =>
+            `<button type="button" class="tab${i === 0 ? " active" : ""}" data-tab="${n.id}">${escapeHtml(n.label)}</button>`
+        )
+        .join("");
+      nav.querySelectorAll(".tab").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          nav.querySelectorAll(".tab").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          panels.forEach((p) => p.classList.toggle("active", p.dataset.panel === btn.dataset.tab));
+        });
+      });
+    }
+
+    function destroyAllCharts() {
+      Object.keys(charts).forEach((id) => destroyChart(id));
+    }
+
+    function processCsvText(text) {
+      destroyAllCharts();
+      const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+      if (parsed.errors?.length) {
+        console.warn(parsed.errors);
+      }
+      const rows = parsed.data;
+      if (!rows.length) throw new Error("CSV has no data rows.");
+      const col = Object.keys(rows[0] || {}).find((k) => k.includes("Treatments Discussed"));
+      if (!col) throw new Error("No column containing “Treatments Discussed” found.");
+
+      allItems = buildLineItems(rows);
+      if (!allItems.length) throw new Error("No treatment line items parsed — check JSON in the CSV.");
+
+      const agg = aggregate(allItems);
+      document.getElementById("app").classList.remove("hidden");
+      document.getElementById("loadErr").classList.add("hidden");
+
+      renderKpis(agg, allItems);
+      renderOverview(agg);
+      renderStaff(agg);
+      stackedTreatmentTimeline(agg);
+      renderTimelineTable(agg);
+      renderProductsPanel(agg, allItems);
+      renderExplorer(allItems);
+    }
+
+    function showErr(msg) {
+      const el = document.getElementById("loadErr");
+      el.textContent = msg;
+      el.classList.remove("hidden");
+    }
+
+    document.getElementById("file").addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = () => {
+        try {
+          processCsvText(r.result);
+        } catch (err) {
+          showErr(err.message || String(err));
+        }
+      };
+      r.readAsText(f, "UTF-8");
+    });
+
+    document.getElementById("btnSample").addEventListener("click", async () => {
+      const url = new URL("../Patients-Grid view (9) - Sheet1.csv", window.location.href);
+      try {
+        const res = await fetch(url.href);
+        if (!res.ok) throw new Error(`HTTP ${res.status} — use the file picker, or serve the repo over HTTP.`);
+        const text = await res.text();
+        processCsvText(text);
+      } catch (e) {
+        showErr(e.message || String(e));
+      }
+    });
+
+    document.getElementById("btnClear").addEventListener("click", () => {
+      document.getElementById("app").classList.add("hidden");
+      document.getElementById("file").value = "";
+      destroyAllCharts();
+      document.getElementById("loadErr").classList.add("hidden");
+    });
+
+    initTabs();
+  </script>
+</body>
+</html>
