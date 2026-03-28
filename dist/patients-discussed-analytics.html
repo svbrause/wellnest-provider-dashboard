@@ -701,8 +701,6 @@
           Add <span class="mono">?nodata=1</span> to skip auto-load. Use <span class="mono">?data=/your-export.csv</span> for a specific file (same origin).
           <strong>Vercel:</strong> after <span class="mono">npm run build</span>, the analytics HTML and <span class="mono">public/patients-discussed-data.csv</span> are in <span class="mono">dist/</span>; replace that CSV to change the default dataset.
           Opening as <span class="mono">file://</span> still needs the file picker unless you use localStorage from a prior load.
-          <strong>Deploy:</strong> with the main app, <span class="mono">npm run build</span> → open <span class="mono">/patients-discussed-analytics.html</span> on your domain.
-          For a tiny site that is only this tool at <span class="mono">/</span>, run <span class="mono">npm run build:analytics</span> then <span class="mono">npx vercel dist-analytics --prod</span>.
         </span>
       </div>
       <div id="loadErr" class="err hidden"></div>

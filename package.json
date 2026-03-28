@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "node --max-http-header-size=4194304 ./node_modules/vite/bin/vite.js",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && cp scripts/patients-discussed-analytics.html dist/patients-discussed-analytics.html",
+    "build:analytics": "node scripts/build-analytics-static.mjs",
     "preview": "node --max-http-header-size=4194304 ./node_modules/vite/bin/vite.js preview",
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run",
