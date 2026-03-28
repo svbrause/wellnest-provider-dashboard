@@ -1,8 +1,9 @@
 // Main Dashboard Layout Component
 
 // import React from 'react';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDashboard } from "../../context/DashboardContext";
+import { providerHasSmsAndSettingsAccess } from "../../utils/providerPrivileges";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import ViewControls from "./ViewControls";
@@ -50,9 +51,17 @@ function DashboardViews() {
 const VIEWS_WITH_CONTROLS = ["list", "cards", "kanban", "facial-analysis", "leads", "archived"];
 
 export default function DashboardLayout({ onLogout }: DashboardLayoutProps) {
-  const { currentView } = useDashboard();
+  const { currentView, setCurrentView, provider } = useDashboard();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const showViewControls = VIEWS_WITH_CONTROLS.includes(currentView);
+
+  useEffect(() => {
+    if (!providerHasSmsAndSettingsAccess(provider)) {
+      if (currentView === "settings" || currentView === "sms-history") {
+        setCurrentView("list");
+      }
+    }
+  }, [provider, currentView, setCurrentView]);
 
   return (
     <div className={`dashboard-wrapper ${sidebarCollapsed ? "dashboard-wrapper--sidebar-collapsed" : ""}`}>
